@@ -58,7 +58,7 @@ func TestGenerateCert(t *testing.T) {
 		t.Fatalf("expected ca key; received nil")
 	}
 
-	cert, key, err := GenerateCert([]string{}, caCert, caKey, testOrg, bits)
+	cert, key, err := GenerateCertificate([]string{}, caCert, caKey, testOrg, "", bits)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -104,7 +104,7 @@ func TestGetPublicKey(t *testing.T) {
 		t.Fatalf("expected ca key; received nil")
 	}
 
-	cert, key, err := GenerateCert([]string{}, caCert, caKey, testOrg, bits)
+	cert, key, err := GenerateCertificate([]string{}, caCert, caKey, testOrg, "", bits)
 	if err != nil {
 		t.Fatal(err)
 	}

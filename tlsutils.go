@@ -86,7 +86,7 @@ func GetServerTLSConfig(caCert, serverCert, serverKey []byte, allowInsecure bool
 	return &tlsConfig, nil
 }
 
-func newCertificate(org string) (*x509.Certificate, error) {
+func newCertificate(org, commonName string) (*x509.Certificate, error) {
 	now := time.Now()
 	// need to set notBefore slightly in the past to account for time
 	// skew in the VMs otherwise the certs sometimes are not yet valid
@@ -100,7 +100,7 @@ func newCertificate(org string) (*x509.Certificate, error) {
 
 	}
 
-	return &x509.Certificate{
+	cert := &x509.Certificate{
 		SerialNumber: serialNumber,
 		Subject: pkix.Name{
 			Organization: []string{org},
@@ -110,14 +110,20 @@ func newCertificate(org string) (*x509.Certificate, error) {
 
 		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature | x509.KeyUsageKeyAgreement,
 		BasicConstraintsValid: true,
-	}, nil
+	}
+
+	if commonName != "" {
+		cert.Subject.CommonName = commonName
+	}
+
+	return cert, nil
 
 }
 
 // GenerateCACertificate generates a new certificate authority from the specified org
 // and bit size and returns the certificate and key as []byte, []byte
 func GenerateCACertificate(org string, bits int) ([]byte, []byte, error) {
-	template, err := newCertificate(org)
+	template, err := newCertificate(org, "")
 	if err != nil {
 		return nil, nil, err
 	}
@@ -146,11 +152,11 @@ func GenerateCACertificate(org string, bits int) ([]byte, []byte, error) {
 	return certOut.Bytes(), keyOut.Bytes(), nil
 }
 
-// GenerateCert generates a new certificate signed using the provided
+// GenerateCertificate generates a new certificate signed using the provided
 // certificate authority certificate and key byte arrays.  It will return
 // the generated certificate and key as []byte, []byte
-func GenerateCert(hosts []string, caCert []byte, caKey []byte, org string, bits int) ([]byte, []byte, error) {
-	template, err := newCertificate(org)
+func GenerateCertificate(hosts []string, caCert []byte, caKey []byte, org string, commonName string, bits int) ([]byte, []byte, error) {
+	template, err := newCertificate(org, commonName)
 	if err != nil {
 		return nil, nil, err
 	}
