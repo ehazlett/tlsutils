@@ -16,7 +16,7 @@ import (
 	"path/filepath"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -32,7 +32,7 @@ func loadSystemCertificates(certPool *x509.CertPool) error {
 		return nil
 	}
 
-	log.Debugf("loading system certificates: dir=%s", systemCertPath)
+	logrus.Debugf("loading system certificates: dir=%s", systemCertPath)
 
 	return filepath.Walk(systemCertPath, func(path string, fi os.FileInfo, err error) error {
 		if !fi.IsDir() {
@@ -66,7 +66,7 @@ func GetServerTLSConfig(caCert, serverCert, serverKey []byte, allowInsecure bool
 	tlsConfig.RootCAs = certPool
 	tlsConfig.ClientCAs = certPool
 
-	log.Debugf("tls root CAs: %d", len(tlsConfig.RootCAs.Subjects()))
+	logrus.Debugf("tls root CAs: %d", len(tlsConfig.RootCAs.Subjects()))
 
 	// require client auth
 	tlsConfig.ClientAuth = tls.VerifyClientCertIfGiven
@@ -105,8 +105,9 @@ func newCertificate(org, commonName string) (*x509.Certificate, error) {
 		Subject: pkix.Name{
 			Organization: []string{org},
 		},
-		NotBefore: notBefore,
-		NotAfter:  notAfter,
+		SignatureAlgorithm: x509.SHA256WithRSA,
+		NotBefore:          notBefore,
+		NotAfter:           notAfter,
 
 		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature | x509.KeyUsageKeyAgreement,
 		BasicConstraintsValid: true,
